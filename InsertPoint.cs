@@ -68,30 +68,22 @@ public class InsertPoint : MonoBehaviour {
         }
     }
 
-    // Новый метод для проверки, можно ли вставить ламу
-    private bool CanInsert()
+    public bool CanInsert()
     {
-        // Проверяем, разрешено ли это направление
-        if (direction == Direction.Down)
+        // Точка вставки разрешена, если GameManager не находится в процессе обработки хода.
+        // TurnManager не проверяем напрямую здесь, так как InputManager
+        // будет реагировать на клик по ЛЮБОЙ InsertPoint,
+        // а GameManager уже в PerformLamaInsert решит, чей сейчас ход.
+        // Однако, чтобы визуально отключить InsertPoint во время чужого хода (если надо),
+        // или если это просто заблокировано общим состоянием игры, оставляем проверку на IsProcessingTurn.
+
+        if (GameManager.Instance.IsProcessingTurn)
         {
             return false;
         }
 
-        // Проверяем, не идет ли уже обработка хода
-        // GameManager.Instance.isProcessingTurn (нужен публичный геттер для этого флага)
-        // Для этого нужно сделать isProcessingTurn публичным свойством в GameManager
-        // public bool IsProcessingTurn => isProcessingTurn;
-        // Или передать флаг через TurnManager.Instance.CanMakeMove (лучше)
-
-        // Для простоты пока используем прямой вызов к GameManager.Instance.isProcessingTurn.
-        // Если флаг isProcessingTurn приватный, то нужно добавить публичное свойство в GameManager:
-        // public bool IsProcessingTurn { get { return isProcessingTurn; } }
-        if (GameManager.Instance.IsProcessingTurn) // Предполагаем, что IsProcessingTurn теперь публичный геттер
-        {
-            return false;
-        }
-
-        // Если все проверки пройдены, то можно вставить
+        // Если игра находится в состоянии, когда можно делать ход,
+        // и GameManager не обрабатывает предыдущий ход, то эта точка активна.
         return true;
     }
 
@@ -102,22 +94,25 @@ public class InsertPoint : MonoBehaviour {
     }
 
     // Обновляет визуальное состояние InsertPoint (активный/неактивный)
-    private void UpdatePointState(PlayerType player)
+    private void UpdatePointState(PlayerType player) // player - это просто текущий игрок, его ход
     {
-        // Логика подсветки/отключения для игрока
-        // Пока просто по цвету, но можно добавить более сложную логику
-        if (CanInsert()) // Если точка вставки разрешена и игра не в процессе хода
+        // Логика подсветки/отключения InsertPoint.
+        // Теперь InsertPoint активен, если *любой* игрок может сделать ход, и GameManager не обрабатывает предыдущий ход.
+        // Если вам нужно ВИЗУАЛЬНО показывать, что insert pointы доступны только для ТЕКУЩЕГО ИГРОКА,
+        // то вам нужно привязать insert points к игрокам (как в предыдущем предложении).
+        // Если все insert points активны для обоих игроков, то достаточно CanInsert().
+        if (CanInsert()) // Если можно вставить (т.е. игра не обрабатывает ход)
         {
             if (pointRenderer != null)
             {
-                pointRenderer.material.color = defaultColor; // Или какой-то цвет, сигнализирующий готовность
+                pointRenderer.material.color = defaultColor; // Активный цвет
             }
         }
-        else // Если вставка запрещена (из-за направления или обработки хода)
+        else // Если вставка запрещена (игра обрабатывает ход)
         {
             if (pointRenderer != null)
             {
-                pointRenderer.material.color = disabledColor;
+                pointRenderer.material.color = disabledColor; // Отключенный цвет
             }
         }
     }

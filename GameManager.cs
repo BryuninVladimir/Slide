@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour {
 
     private BoardMatcher boardMatcher;
 
-    public bool IsProcessingTurn { get; private set; } = false;
+    public bool IsProcessingTurn { get; private set; } // Добавим публичный геттер, если его нет
 
     void Awake()
     {
@@ -321,8 +321,10 @@ public class GameManager : MonoBehaviour {
             return;
         }
 
-        IsProcessingTurn = true;
-        Debug.Log($"PerformLamaInsert: Direction {direction}, Index {index}. IsProcessingTurn = {IsProcessingTurn}");
+        IsProcessingTurn = true; // <--- Устанавливаем флаг в начале обработки хода
+        PlayerType currentPlayer = TurnManager.Instance.currentPlayer; // Получаем текущего игрока для логирования и очков
+        Debug.Log($"Performing lama insert for {currentPlayer}: {direction} at index {index}");
+        PlaySFX(lamaInsertSound);
 
 
         LamaType pushedOutLamaType = LamaType.None;
@@ -666,7 +668,7 @@ public class GameManager : MonoBehaviour {
         // как убедились, что игра не закончилась и можно передавать ход.
         // Если TurnManager.Instance.NextTurn() пока не создан, закомментируй или реализуй его.
         // Для теста пока можно просто вызвать GenerateNewCurrentLama() и установить IsProcessingTurn = false.
-        // TurnManager.Instance.NextTurn(); // Раскомментировать, когда TurnManager будет готов
+        TurnManager.Instance.NextTurn(); // Раскомментировать, когда TurnManager будет готов
         IsProcessingTurn = false;
         Debug.Log("Ready for next turn.");
     }
